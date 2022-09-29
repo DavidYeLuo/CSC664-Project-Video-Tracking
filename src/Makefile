@@ -1,7 +1,9 @@
 MAIN = Application.java
 CLASS = Application.class
-DEPS = .:ImageReader
-DEPS_DIR = ./ImageReader
+DEPS = .
+DEPS_DIR = ImageReader
+#DEPS = .:ImageReader # Example
+#DEPS_DIR = ./ImageReader # Example
 
 # Dependencies
 # Required for modification to suit your operating system
@@ -15,6 +17,9 @@ LIB_DIR = /home/student/Desktop/opencv-4.6.0/build/lib
 .PHONY: all run clean dep
 
 all: dep $(CLASS)
+
+Application.class: Application.java
+	javac -cp $(DEPS):$(JAR_DIR) $<
 
 %.class: %.java
 	javac -cp $(DEPS) $<
