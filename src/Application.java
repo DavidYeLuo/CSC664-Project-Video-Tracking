@@ -43,9 +43,11 @@ public class Application
         Mat grayScaleImage = new Mat();
         Mat binaryImage = new Mat();
         Mat distanceTImage = new Mat();
-        Mat laplacianImage = new Mat();
+        Mat sobelX = new Mat();
+        Mat sobelY = new Mat();
+        Mat finalSobel = new Mat();
 
-        for(int i = 0; i < 1; i++)
+        for(int i = 0; i < 300; i++)
         {
             if(!videoCapture.isOpened()) continue;
             videoCapture.read(sourceImage);
@@ -67,33 +69,31 @@ public class Application
 
 
             distanceTImage.convertTo(distanceTImage, CvType.CV_8UC1);
-            Imgproc.threshold(distanceTImage, laplacianImage, 0, 255, Imgproc.THRESH_OTSU);
-            System.out.println("Image processing: distance transform");
-            Imgproc.distanceTransform(laplacianImage, laplacianImage, Imgproc.DIST_L2, 0);
-            System.out.printf("Image Transform: %s\n", distanceTImage);
-            Imgproc.threshold(distanceTImage, laplacianImage, 0, 255, Imgproc.THRESH_OTSU);
-            Core.bitwise_not(laplacianImage, laplacianImage);
-            distanceTImage.convertTo(distanceTImage, CvType.CV_8UC1);
-//            distanceTImage.convertTo(distanceTImage, CvType.CV_8UC1);
-////            Core.bitwise_not(distanceTImage, distanceTImage);
-//            Imgproc.Laplacian(distanceTImage, laplacianImage, CvType.CV_8UC1, 3, 1, 0, Core.BORDER_DEFAULT);
 
-//            Imgproc.threshold(laplacianImage, laplacianImage, 0, 255, Imgproc.THRESH_OTSU);
-//            Imgproc.threshold(laplacianImage, laplacianImage, 0, 255, Imgproc.THRESH_BINARY); // manual
+            Imgproc.Sobel(distanceTImage, sobelX, CvType.CV_8UC1, 1, 0, 3, 1, 0, Core.BORDER_DEFAULT );
+            Imgproc.Sobel(distanceTImage, sobelY, CvType.CV_8UC1, 0, 1, 3, 1, 0, Core.BORDER_DEFAULT );
+
+            Core.convertScaleAbs( sobelX, sobelX);
+            Core.convertScaleAbs( sobelY, sobelY);
+
+            Core.addWeighted( sobelX, 0.5, sobelY, 0.5, 0, finalSobel);
+
+            Imgproc.threshold(finalSobel, finalSobel, 0, 255, Imgproc.THRESH_BINARY);
+            Core.bitwise_not(finalSobel, finalSobel);
 
             Scalar color = new Scalar(203,192, 255); // hot pink
 //            Scalar color = new Scalar(255,255,255); // white
-            sourceImage.setTo(color, laplacianImage);
+            sourceImage.setTo(color, finalSobel);
 
             System.out.println("Finished processing");
 
             System.out.printf("Writing image to disk: %s.\n", OUTPUT_FILES + fileName);
 
-            Imgcodecs.imwrite(OUTPUT_FILES + "grayscale.jpg", grayScaleImage);
-            Imgcodecs.imwrite(OUTPUT_FILES + "binaryimage.jpg", binaryImage);
-            Imgcodecs.imwrite(OUTPUT_FILES + "transform.jpg", distanceTImage);
-            Imgcodecs.imwrite(OUTPUT_FILES + "laplacian.jpg", laplacianImage);
-            Imgcodecs.imwrite(OUTPUT_FILES + "result.jpg", sourceImage);
+//            Imgcodecs.imwrite(OUTPUT_FILES + "grayscale.jpg", grayScaleImage);
+//            Imgcodecs.imwrite(OUTPUT_FILES + "binaryimage.jpg", binaryImage);
+//            Imgcodecs.imwrite(OUTPUT_FILES + "transform.jpg", distanceTImage);
+//            Imgcodecs.imwrite(OUTPUT_FILES + "laplacian.jpg", finalSobel);
+//            Imgcodecs.imwrite(OUTPUT_FILES + "result.jpg", sourceImage);
 
             videoWriter.write(sourceImage);
         }
