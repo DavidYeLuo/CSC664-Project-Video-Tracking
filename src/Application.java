@@ -37,65 +37,64 @@ public class Application
 
         if(!videoCapture.isOpened()) System.out.println("File didn't open");
 
-        // TODO: rename Image Matrix to Frame Matrix
-        Mat sourceImage = new Mat();
-        //        Mat sourceImage = Imgcodecs.imread(imgPath); // Used for images
-        Mat grayScaleImage = new Mat();
-        Mat binaryImage = new Mat();
-        Mat distanceTImage = new Mat();
+        Mat sourceFrame = new Mat();
+        //        Mat sourceFrame = Imgcodecs.imread(imgPath); // Used for images
+        Mat grayScaleFrame = new Mat();
+        Mat binaryFrame = new Mat();
+        Mat distanceTFrame = new Mat();
         Mat sobelX = new Mat();
         Mat sobelY = new Mat();
         Mat finalSobel = new Mat();
 
-        for(int i = 0; i < 300; i++)
+        for(int i = 0; i < 1; i++)
         {
             if(!videoCapture.isOpened()) continue;
-            videoCapture.read(sourceImage);
-            System.out.printf("Source Image: %s\n", sourceImage);
+            videoCapture.read(sourceFrame);
+            System.out.printf("Source Image: %s\n", sourceFrame);
 
             System.out.println("Image processing: Grayscaling");
-            Imgproc.cvtColor(sourceImage, grayScaleImage,Imgproc.COLOR_BGR2GRAY);
-            System.out.printf("GrayScaled Image: %s\n", sourceImage);
+            Imgproc.cvtColor(sourceFrame, grayScaleFrame,Imgproc.COLOR_BGR2GRAY);
+            System.out.printf("GrayScaled Image: %s\n", sourceFrame);
 
             System.out.println("Image processing: Thresholding");
-//            Imgproc.threshold(grayScaleImage, binaryImage, 200, 255, Imgproc.THRESH_BINARY); // manual
-            Imgproc.threshold(grayScaleImage, binaryImage, 0, 255, Imgproc.THRESH_OTSU);
-//            binaryImage.convertTo(binaryImage, CvType.CV_8UC1);
-            System.out.printf("Binary Image: %s\n", binaryImage);
+//            Imgproc.threshold(grayScaleFrame, binaryFrame, 200, 255, Imgproc.THRESH_BINARY); // manual threshold
+            Imgproc.threshold(grayScaleFrame, binaryFrame, 0, 255, Imgproc.THRESH_OTSU);
+            System.out.printf("Binary Image: %s\n", binaryFrame);
 
             System.out.println("Image processing: distance transform");
-            Imgproc.distanceTransform(binaryImage, distanceTImage, Imgproc.DIST_L2, 0);
-            System.out.printf("Image Transform: %s\n", distanceTImage);
+            Imgproc.distanceTransform(binaryFrame, distanceTFrame, Imgproc.DIST_L2, 0);
+            System.out.printf("Image Transform: %s\n", distanceTFrame);
 
+            // Needs to convert to 64 bit image
+            // This way it will capture negative slopes
+            Imgproc.Sobel(distanceTFrame, sobelX, CvType.CV_64F, 1, 0, 3, 1, 0, Core.BORDER_DEFAULT );
+            Imgproc.Sobel(distanceTFrame, sobelY, CvType.CV_64F, 0, 1, 3, 1, 0, Core.BORDER_DEFAULT );
 
-            distanceTImage.convertTo(distanceTImage, CvType.CV_8UC1);
+            Core.convertScaleAbs(sobelX, sobelX);
+            Core.convertScaleAbs(sobelY, sobelY);
 
-            Imgproc.Sobel(distanceTImage, sobelX, CvType.CV_8UC1, 1, 0, 3, 1, 0, Core.BORDER_DEFAULT );
-            Imgproc.Sobel(distanceTImage, sobelY, CvType.CV_8UC1, 0, 1, 3, 1, 0, Core.BORDER_DEFAULT );
-
-            Core.convertScaleAbs( sobelX, sobelX);
-            Core.convertScaleAbs( sobelY, sobelY);
-
-            Core.addWeighted( sobelX, 0.5, sobelY, 0.5, 0, finalSobel);
+            Core.addWeighted(sobelX, 0.5, sobelY, 0.5, 0, finalSobel);
 
             Imgproc.threshold(finalSobel, finalSobel, 0, 255, Imgproc.THRESH_BINARY);
             Core.bitwise_not(finalSobel, finalSobel);
 
             Scalar color = new Scalar(203,192, 255); // hot pink
 //            Scalar color = new Scalar(255,255,255); // white
-            sourceImage.setTo(color, finalSobel);
+            sourceFrame.setTo(color, finalSobel);
 
             System.out.println("Finished processing");
 
             System.out.printf("Writing image to disk: %s.\n", OUTPUT_FILES + fileName);
 
-//            Imgcodecs.imwrite(OUTPUT_FILES + "grayscale.jpg", grayScaleImage);
-//            Imgcodecs.imwrite(OUTPUT_FILES + "binaryimage.jpg", binaryImage);
-//            Imgcodecs.imwrite(OUTPUT_FILES + "transform.jpg", distanceTImage);
-//            Imgcodecs.imwrite(OUTPUT_FILES + "laplacian.jpg", finalSobel);
-//            Imgcodecs.imwrite(OUTPUT_FILES + "result.jpg", sourceImage);
+            Imgcodecs.imwrite(OUTPUT_FILES + "grayscale.jpg", grayScaleFrame);
+            Imgcodecs.imwrite(OUTPUT_FILES + "binaryimage.jpg", binaryFrame);
+            Imgcodecs.imwrite(OUTPUT_FILES + "transform.jpg", distanceTFrame);
+            Imgcodecs.imwrite(OUTPUT_FILES + "sobel_inv.jpg", finalSobel);
+            Core.bitwise_not(finalSobel, finalSobel);
+            Imgcodecs.imwrite(OUTPUT_FILES + "sobel.jpg", finalSobel);
+            Imgcodecs.imwrite(OUTPUT_FILES + "result.jpg", sourceFrame);
 
-            videoWriter.write(sourceImage);
+            videoWriter.write(sourceFrame);
         }
 
         videoCapture.release();
