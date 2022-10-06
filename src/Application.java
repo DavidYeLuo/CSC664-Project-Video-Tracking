@@ -6,6 +6,8 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.Videoio;
 
 import java.awt.image.ImageProducer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Application
 {
@@ -48,25 +50,47 @@ public class Application
         Mat sobelY = new Mat();
         Mat finalSobel = new Mat();
 
+        int numOfSections = 8; // arbitrary number for now
+        List<Mat> sections = new ArrayList<>();
+
         int numOfFrames = 1;
         for(int i = 0; i < numOfFrames; i++)
         {
             if(!videoCapture.isOpened()) continue;
+
+//            for(int section = 0; section < numOfSections/2; section++)
+//            {
+//                sections[i] = sourceFrame.submat(sourceFrame.rows() * i/numOfSections,
+//                                                 sourceFrame.rows() * (i+1)/numOfSections,
+//                                                 ,
+//                                                 sourceFrame.cols() * (i+1)/numOfSections);
+//            }
             videoCapture.read(sourceFrame);
-//            System.out.printf("Source Image: %s\n", sourceFrame);
 
-//            System.out.println("Image processing: Grayscaling");
+            /**
+             * TODO: This is only cutting the top left part. We need to cut everything.
+             */
+            int rowBlock = sourceFrame.rows() / numOfSections;
+            int colBlock = sourceFrame.cols() / numOfSections;
+            sections.add(sourceFrame.submat(0, rowBlock
+                    , 0, colBlock));
+            sections.add(sourceFrame.submat(rowBlock, rowBlock*2
+                    , 0, colBlock));
+
+            /**
+             * We will apply the otsu algorithm on each segment here and apply otsu algorithm here.
+             */
+
+            Core.vconcat(sections, sourceFrame); // This merges images vertically
+
             Imgproc.cvtColor(sourceFrame, grayScaleFrame,Imgproc.COLOR_BGR2GRAY);
-//            System.out.printf("GrayScaled Image: %s\n", sourceFrame);
 
-//            System.out.println("Image processing: Thresholding");
-//            Imgproc.threshold(grayScaleFrame, binaryFrame, 200, 255, Imgproc.THRESH_BINARY); // manual threshold
             Imgproc.threshold(grayScaleFrame, binaryFrame, 0, 255, Imgproc.THRESH_OTSU);
-//            System.out.printf("Binary Image: %s\n", binaryFrame);
+//            Imgproc.adaptiveThreshold(grayScaleFrame, binaryFrame, 255,
+//                                      Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY,
+//                                      7, 8);
 
-//            System.out.println("Image processing: distance transform");
             Imgproc.distanceTransform(binaryFrame, distanceTFrame, Imgproc.DIST_L2, 0);
-//            System.out.printf("Image Transform: %s\n", distanceTFrame);
 
             // Needs to convert to 64 bit image
             // This way it will capture negative slopes
@@ -85,17 +109,13 @@ public class Application
 //            Scalar color = new Scalar(255,255,255); // white
             sourceFrame.setTo(color, finalSobel);
 
-//            System.out.println("Finished processing");
-
-//            System.out.printf("Writing image to disk: %s.\n", OUTPUT_FILES + fileName);
-
-//            Imgcodecs.imwrite(OUTPUT_FILES + "grayscale.jpg", grayScaleFrame);
-//            Imgcodecs.imwrite(OUTPUT_FILES + "binaryimage.jpg", binaryFrame);
-//            Imgcodecs.imwrite(OUTPUT_FILES + "transform.jpg", distanceTFrame);
-//            Imgcodecs.imwrite(OUTPUT_FILES + "sobel_inv.jpg", finalSobel);
-//            Core.bitwise_not(finalSobel, finalSobel);
-//            Imgcodecs.imwrite(OUTPUT_FILES + "sobel.jpg", finalSobel);
-//            Imgcodecs.imwrite(OUTPUT_FILES + "result.jpg", sourceFrame);
+            Imgcodecs.imwrite(OUTPUT_FILES + "grayscale.jpg", grayScaleFrame);
+            Imgcodecs.imwrite(OUTPUT_FILES + "binaryimage.jpg", binaryFrame);
+            Imgcodecs.imwrite(OUTPUT_FILES + "transform.jpg", distanceTFrame);
+            Imgcodecs.imwrite(OUTPUT_FILES + "sobel_inv.jpg", finalSobel);
+            Core.bitwise_not(finalSobel, finalSobel);
+            Imgcodecs.imwrite(OUTPUT_FILES + "sobel.jpg", finalSobel);
+            Imgcodecs.imwrite(OUTPUT_FILES + "result.jpg", sourceFrame);
 
             videoWriter.write(sourceFrame);
         }
