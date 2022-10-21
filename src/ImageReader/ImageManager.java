@@ -5,12 +5,10 @@ import org.opencv.imgproc.Imgproc;
 import ImageReader.temp.A;
 public class ImageManager extends FileManager
 {
-    Imgcodecs imgcodecs;
     public ImageManager(String readPath, String savePath)
     {
         this.readPath = readPath;
         this.savePath = savePath;
-        imgcodecs = new Imgcodecs();
     }
     @Override
     public boolean read(Mat readTo)

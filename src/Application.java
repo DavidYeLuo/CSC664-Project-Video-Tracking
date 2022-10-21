@@ -9,6 +9,9 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.Videoio;
 
 import java.awt.image.ImageProducer;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +19,7 @@ public class Application
 {
     public static final String MEDIA_PATH = "../media/";
     public static final String OUTPUT_FILES = "../output/";
+    public static final String DEBUG_PATH = "../output/DebugFiles/";
     public static void main(String[]args)
     {
         System.out.println("------------------------------------");
@@ -33,12 +37,15 @@ public class Application
 
         System.out.printf("Reading image from disk: %s\n", imgPath);
 
+        boolean DEBUG_MODE = false;
+        boolean DEBUG_SAVE_IMAGE = false;
+        boolean DEBUG_PRINT_IMAGE = false;
+
         int         fourcc       = VideoWriter.fourcc('a', 'v', 'c', '1');
-        FileManager fileManager = new VideoManager(imgPath, outImgPath, fourcc);
-//        FileManager fileManager = new ImageManager(imgPath, outImgPath);
+        FileManager fileManager = new VideoManager(imgPath, outImgPath, fourcc); // Comment for img
+//        FileManager fileManager = new ImageManager(imgPath, outImgPath); // Uncomment for img
 
         Mat sourceFrame = new Mat();
-        //        Mat sourceFrame = Imgcodecs.imread(imgPath); // Used for images
         Mat grayScaleFrame = new Mat();
         Mat binaryFrame = new Mat();
         Mat distanceTFrame = new Mat();
@@ -63,9 +70,6 @@ public class Application
             /**
              * We will apply the otsu algorithm on each segment here and apply otsu algorithm here.
              */
-
-
-            System.out.println(sourceFrame);
             Imgproc.cvtColor(sourceFrame, grayScaleFrame,Imgproc.COLOR_BGR2GRAY);
 
             // Cool but not sure if we need to use edge detection
@@ -133,21 +137,63 @@ public class Application
                     Imgproc.rectangle(sourceFrame, topLeft, bottomRight, color);
                 }
             }
-
-            Imgcodecs.imwrite(OUTPUT_FILES + "grayscale.jpg", grayScaleFrame);
-            Imgcodecs.imwrite(OUTPUT_FILES + "binaryimage.jpg", binaryFrame);
-            Imgcodecs.imwrite(OUTPUT_FILES + "transform.jpg", distanceTFrame);
-            Imgcodecs.imwrite(OUTPUT_FILES + "sobel.jpg", finalSobel);
-            Core.bitwise_not(finalSobel, finalSobel);
-            Imgcodecs.imwrite(OUTPUT_FILES + "sobel_inv.jpg", finalSobel);
-            Imgcodecs.imwrite(OUTPUT_FILES + "result.jpg", sourceFrame);
-//            Imgcodecs.imwrite(OUTPUT_FILES + "edge.jpg", edgeFrame);
-
             fileManager.write(sourceFrame);
         }
-
         fileManager.release();
+        if(!DEBUG_MODE)
+        {
+            return;
+        }
+        if(DEBUG_SAVE_IMAGE)
+        {
+            Imgcodecs.imwrite(DEBUG_PATH + "grayscale.jpg", grayScaleFrame);
+            Imgcodecs.imwrite(DEBUG_PATH + "binaryimage.jpg", binaryFrame);
+            Imgcodecs.imwrite(DEBUG_PATH + "transform.jpg", distanceTFrame);
+            Imgcodecs.imwrite(DEBUG_PATH + "sobel.jpg", finalSobel);
+            Imgcodecs.imwrite(DEBUG_PATH + "result.jpg", sourceFrame);
+            //            Imgcodecs.imwrite(OUTPUT_FILES + "edge.jpg", edgeFrame);
+        }
+        if(DEBUG_PRINT_IMAGE)
+        {
+            createTextImageFile("grayscale.txt", grayScaleFrame);
+            createTextImageFile("binaryimage.txt", binaryFrame);
+            createTextImageFile("transform.txt", distanceTFrame);
+            createTextImageFile("sobel.txt", finalSobel);
+            createTextImageFile("result.txt", sourceFrame);
+        }
+    }
+    private static void createTextImageFile(String fileName, Mat img)
+    {
+        try {
+            File file = new File(fileName); // TODO: cache
+            FileWriter fileWriter = new FileWriter(DEBUG_PATH + fileName); // TODO: cache
+            if(!file.exists()) file.createNewFile();
+            fileWriter.write("----- " + fileName + " -----\n");
+            printImage(img, fileWriter);
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-
+    private static void printImage(Mat img, FileWriter fileWriter)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        try
+        {
+            for(int row = 0; row < img.rows(); row++)
+            {
+                for(int col = 0; col < img.cols(); col++)
+                {
+                    stringBuilder.append(String.format("%03d", (int)(img.get(row,col)[0])));
+                    stringBuilder.append(" ");
+                }
+                stringBuilder.append("\n");
+                fileWriter.write(stringBuilder.toString());
+                stringBuilder.setLength(0); // Resets buffer
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
