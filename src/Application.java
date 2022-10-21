@@ -1,3 +1,6 @@
+import ImageReader.FileManager;
+import ImageReader.ImageManager;
+import ImageReader.VideoManager;
 import org.opencv.core.*;
 import org.opencv.videoio.VideoWriter;
 import org.opencv.videoio.VideoCapture;
@@ -24,22 +27,15 @@ public class Application
         System.out.println("------------------------------------");
 
         String fileName = "0001.mp4";
+//        String fileName = "0001.jpg";
         String imgPath = MEDIA_PATH + fileName;
         String outImgPath = OUTPUT_FILES + fileName;
 
         System.out.printf("Reading image from disk: %s\n", imgPath);
 
-        int fourcc = VideoWriter.fourcc('a','v','c','1');
-//        int fourcc = VideoWriter.fourcc('h','2','6','4');
-        VideoCapture videoCapture = new VideoCapture(imgPath);
-
-        double fps = videoCapture.get(Videoio.CAP_PROP_FPS);
-        Size frameSize = new Size(
-                (int) videoCapture.get(Videoio.CAP_PROP_FRAME_WIDTH),
-                (int) videoCapture.get(Videoio.CAP_PROP_FRAME_HEIGHT));
-        VideoWriter videoWriter = new VideoWriter(outImgPath, fourcc, fps, frameSize,true);
-
-        if(!videoCapture.isOpened()) System.out.println("File didn't open");
+        int         fourcc       = VideoWriter.fourcc('a', 'v', 'c', '1');
+        FileManager fileManager = new VideoManager(imgPath, outImgPath, fourcc);
+//        FileManager fileManager = new ImageManager(imgPath, outImgPath);
 
         Mat sourceFrame = new Mat();
         //        Mat sourceFrame = Imgcodecs.imread(imgPath); // Used for images
@@ -62,14 +58,14 @@ public class Application
         int numOfFrames = 1;
         for(int i = 0; i < numOfFrames; i++)
         {
-            if(!videoCapture.isOpened()) continue;
-            videoCapture.read(sourceFrame);
+            if(fileManager.read(sourceFrame) == false) break;
 
             /**
              * We will apply the otsu algorithm on each segment here and apply otsu algorithm here.
              */
 
 
+            System.out.println(sourceFrame);
             Imgproc.cvtColor(sourceFrame, grayScaleFrame,Imgproc.COLOR_BGR2GRAY);
 
             // Cool but not sure if we need to use edge detection
@@ -147,10 +143,11 @@ public class Application
             Imgcodecs.imwrite(OUTPUT_FILES + "result.jpg", sourceFrame);
 //            Imgcodecs.imwrite(OUTPUT_FILES + "edge.jpg", edgeFrame);
 
-            videoWriter.write(sourceFrame);
+            fileManager.write(sourceFrame);
         }
 
-        videoCapture.release();
-        videoWriter.release();
+        fileManager.release();
     }
+
+
 }

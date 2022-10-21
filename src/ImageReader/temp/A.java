@@ -1,5 +1,5 @@
 // Temporary class.
-package temp;
+package ImageReader.temp;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
