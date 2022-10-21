@@ -165,7 +165,7 @@ public class Application
     private static void createTextImageFile(String fileName, Mat img)
     {
         try {
-            File file = new File(fileName); // TODO: cache
+            File file = new File(DEBUG_PATH + fileName); // TODO: cache
             FileWriter fileWriter = new FileWriter(DEBUG_PATH + fileName); // TODO: cache
             if(!file.exists()) file.createNewFile();
             fileWriter.write("----- " + fileName + " -----\n");
