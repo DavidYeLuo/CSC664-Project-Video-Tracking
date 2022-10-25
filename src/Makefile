@@ -2,17 +2,6 @@ MAIN = Application.java
 CLASS = Application.class
 DEPS = .
 DEPS_DIR = ImageReader
-#DEPS = .:ImageReader # Example
-#DEPS_DIR = ./ImageReader # Example
-
-# Dependencies
-# Required for modification to suit your operating system
-# Where the .jar file live
-# Typically opencv-x-x-x/build/bin/opencv-xxx.jar
-JAR_DIR = /home/student/Desktop/opencv-4.6.0/build/bin/opencv-460.jar
-# This is where your .so live
-# Typically opencv-x-x-x/build/lib
-LIB_DIR = /home/student/Desktop/opencv-4.6.0/build/lib
 
 .PHONY: all run clean dep
 
@@ -34,4 +23,4 @@ clean:
 	make -C $(DEPS_DIR) clean
 
 dep:
-	make -C $(DEPS_DIR)
+	make -C $(DEPS_DIR) JAR_DIR?=$(JAR_DIR) LIB_DIR=$(LIB_DIR)
