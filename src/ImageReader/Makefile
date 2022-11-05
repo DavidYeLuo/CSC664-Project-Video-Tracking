@@ -1,11 +1,11 @@
-CLASS = ImageReader.class
-DEPS = .:temp
+CLASS =
+DEPS = .
 DEPS_DIR = ./temp
 
 all: dep $(CLASS)
 
 %.class: %.java
-	javac -cp $(DEPS) $<
+	javac -cp $(DEPS):$(JAR_DIR) $<
 
 clean:
 	rm *.class

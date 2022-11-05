@@ -1,11 +1,10 @@
 CLASS = A.class
-OPENCV_PATH = /home/student/Desktop/opencv-4.6.0
-DEPS = .:$(OPENCV_PATH)/build/bin/opencv-460.jar
+DEPS =
 
 all: $(CLASS)
 
 %.class: %.java
-	javac -cp $(DEPS) $<
+	javac -cp $(DEPS):$(JAR_DIR) $<
 
 clean:
 	rm *.class
