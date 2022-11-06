@@ -1,3 +1,4 @@
+#CLASS = FileManager.class ImageManager.class VideoManager.class
 CLASS =
 DEPS = .
 DEPS_DIR = ./temp
