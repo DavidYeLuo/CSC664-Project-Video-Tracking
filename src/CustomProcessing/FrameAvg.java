@@ -17,6 +17,7 @@ public class FrameAvg
     private int maxFrames;
 
     private Mat average;
+    private Mat ret_avg;
     private Scalar scalar; // number to divide by to get the average
 
     public FrameAvg(int maxFrames)
@@ -24,6 +25,7 @@ public class FrameAvg
         frameList = new ArrayList<>();
         this.maxFrames = maxFrames;
         scalar = new Scalar(maxFrames);
+        ret_avg = new Mat();
     }
 
     public void addFrame(Mat frame)
@@ -56,6 +58,8 @@ public class FrameAvg
     }
     public Mat getAverage()
     {
-        return average;
+        average.copyTo(ret_avg);
+        ret_avg.convertTo(ret_avg, CvType.CV_8U);
+        return ret_avg;
     }
 }

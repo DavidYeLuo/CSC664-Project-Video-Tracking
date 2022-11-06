@@ -39,9 +39,9 @@ public class Application
         // Settings for image/video
         String fileName = "0001.mp4";
         int fourcc = VideoWriter.fourcc('a', 'v', 'c', '1');
-        int numOfFrames = 15; // Number of frames to process
+        int numOfFrames = 300; // Number of frames to process
         // Object Tracking Settings
-        int maxAvgFrames = 10; // Used to filter background
+        int maxAvgFrames = 300; // Used to filter background
         int numOfSections = 8; // arbitrary number for now
         int radius = 1; // Box/circle around the tracking object
         Scalar color = new Scalar(203,192, 255); // hot pink
@@ -101,6 +101,7 @@ public class Application
             frameAvg.addFrame(grayScaleFrame);
             averageFrame = frameAvg.getAverage();
 //            Core.subtract(grayScaleFrame, averageFrame, differenceFrame);
+            Core.subtract(averageFrame, grayScaleFrame, differenceFrame);
 
             /**
              * TODO: Need to convert image splitting, processing, and merging into a method
@@ -142,6 +143,9 @@ public class Application
             grayScaleFrame.copyTo(outputFrame);
             Imgproc.cvtColor(outputFrame, outputFrame,Imgproc.COLOR_GRAY2BGR);
 
+//            Imgproc.threshold(differenceFrame, binaryFrame, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY_INV);
+            Imgproc.threshold(differenceFrame, binaryFrame, 10, 255, Imgproc.THRESH_BINARY);
+//            Imgproc.threshold(differenceFrame, binaryFrame, 0, 255, Imgproc.THRESH_OTSU);
 
             // Cool but not sure if we need to use edge detection
 //            Imgproc.Sobel(grayScaleFrame, edgeX, CvType.CV_64F, 1, 0, 3, 1, 0, Core.BORDER_DEFAULT );
@@ -206,7 +210,7 @@ public class Application
             Imgcodecs.imwrite(DEBUG_PATH + "sobel.jpg", finalSobel);
             Imgcodecs.imwrite(DEBUG_PATH + "result.jpg", outputFrame);
             Imgcodecs.imwrite(DEBUG_PATH + "average.jpg", averageFrame);
-//            Imgcodecs.imwrite(DEBUG_PATH + "difference.jpg", differenceFrame);
+            Imgcodecs.imwrite(DEBUG_PATH + "difference.jpg", differenceFrame);
 //                        Imgcodecs.imwrite(OUTPUT_FILES + "edge.jpg", edgeFrame);
         }
         if(DEBUG_PRINT_IMAGE)
@@ -219,7 +223,7 @@ public class Application
             createTextImageFile("sobel.txt", finalSobel);
             createTextImageFile("result.txt", outputFrame);
             createTextImageFile("average.txt", averageFrame);
-//            createTextImageFile("difference.txt", differenceFrame);
+            createTextImageFile("difference.txt", differenceFrame);
         }
     }
     private static void createTextImageFile(String fileName, Mat img)
