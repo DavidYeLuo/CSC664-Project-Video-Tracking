@@ -1,3 +1,4 @@
+import CustomProcessing.FrameAvg;
 import ImageReader.FileManager;
 import ImageReader.ImageManager;
 import ImageReader.VideoManager;
@@ -71,8 +72,9 @@ public class Application
         // Settings for image/video
         String fileName = "0001.mp4";
         int fourcc = VideoWriter.fourcc('a', 'v', 'c', '1');
-        int numOfFrames = 1; // Number of frames to process
+        int numOfFrames = 300; // Number of frames to process
         // Object Tracking Settings
+        int maxAvgFrames = 10; // Used to filter background
         int numOfSections = 8; // arbitrary number for now
         int radius = 1; // Box/circle around the tracking object
         Scalar color = new Scalar(203,192, 255); // hot pink
@@ -94,9 +96,11 @@ public class Application
         {
             fileManager = new VideoManager(imgPath, outImgPath, fourcc);
         }
+        FrameAvg frameAvg = new FrameAvg(maxAvgFrames);
 
         Mat sourceFrame = new Mat();
         Mat grayScaleFrame = new Mat();
+        Mat differenceFrame = new Mat();
         Mat binaryFrame = new Mat();
         Mat distanceTFrame = new Mat();
 //        Mat edgeFrame = new Mat();
@@ -106,6 +110,7 @@ public class Application
         Mat sobelY = new Mat();
 //        Mat firstSobel = new Mat();
         Mat finalSobel = new Mat();
+        Mat averageFrame = new Mat();
         Mat outputFrame = new Mat();
 
         // Create a kernel that we will use to sharpen our image
@@ -126,18 +131,17 @@ public class Application
             if(fileManager.read(sourceFrame) == false) break;
 
             Imgproc.cvtColor(sourceFrame, grayScaleFrame,Imgproc.COLOR_BGR2GRAY);
-            Core.normalize(grayScaleFrame, grayScaleFrame, 0, 255, Core.NORM_MINMAX);
+//            Core.normalize(grayScaleFrame, grayScaleFrame, 0, 255, Core.NORM_MINMAX);
+            frameAvg.addFrame(grayScaleFrame);
+            averageFrame = frameAvg.getAverage();
+//            Core.subtract(grayScaleFrame, averageFrame, differenceFrame);
+            Core.subtract(averageFrame, grayScaleFrame, differenceFrame);
 
             grayScaleFrame.copyTo(outputFrame);
             Imgproc.cvtColor(outputFrame, outputFrame,Imgproc.COLOR_GRAY2BGR);
-            ImageSplitAndMerge(15, sourceFrame);
 
-            sourceFrame.copyTo(grayScaleFrame);
-
-            Imgproc.threshold(grayScaleFrame, binaryFrame, 0, 255, Imgproc.THRESH_OTSU);
-//            Imgproc.adaptiveThreshold(grayScaleFrame, binaryFrame, 255,
-//                                      Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV,
-//                                      7, 8);
+//            Imgproc.threshold(differenceFrame, binaryFrame, 10, 255, Imgproc.THRESH_BINARY);
+            Imgproc.threshold(differenceFrame, binaryFrame, 0, 255, Imgproc.THRESH_OTSU);
 
             Imgproc.distanceTransform(binaryFrame, distanceTFrame, Imgproc.DIST_L1, 5);
 
@@ -181,7 +185,9 @@ public class Application
             Imgcodecs.imwrite(DEBUG_PATH + "transform.jpg", distanceTFrame);
             Imgcodecs.imwrite(DEBUG_PATH + "sobel.jpg", finalSobel);
             Imgcodecs.imwrite(DEBUG_PATH + "result.jpg", outputFrame);
-            //            Imgcodecs.imwrite(OUTPUT_FILES + "edge.jpg", edgeFrame);
+            Imgcodecs.imwrite(DEBUG_PATH + "average.jpg", averageFrame);
+            Imgcodecs.imwrite(DEBUG_PATH + "difference.jpg", differenceFrame);
+//                        Imgcodecs.imwrite(OUTPUT_FILES + "edge.jpg", edgeFrame);
         }
         if(DEBUG_PRINT_IMAGE)
         {
@@ -192,6 +198,8 @@ public class Application
             createTextImageFile("sobelY.txt", sobelY);
             createTextImageFile("sobel.txt", finalSobel);
             createTextImageFile("result.txt", outputFrame);
+            createTextImageFile("average.txt", averageFrame);
+            createTextImageFile("difference.txt", differenceFrame);
         }
     }
     private static void createTextImageFile(String fileName, Mat img)

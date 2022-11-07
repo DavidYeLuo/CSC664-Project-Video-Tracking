@@ -1,7 +1,11 @@
 MAIN = Application.java
 CLASS = Application.class
 DEPS = .
-DEPS_DIR = ImageReader
+
+# DEPS DIR
+DEPS_DIR = ImageReader CustomProcessing
+IMAGE_READER_DIR = ImageReader
+CUSTOM_PROCESSING_DIR = CustomProcessing
 
 .PHONY: all run clean dep
 
@@ -20,7 +24,11 @@ run: dep $(CLASS)
 
 clean:
 	rm *.class
-	make -C $(DEPS_DIR) clean
+	#make -C $(DEPS_DIR) clean
+	make -C $(IMAGE_READER_DIR) clean
+	make -C $(CUSTOM_PROCESSING_DIR) clean
 
 dep:
-	make -C $(DEPS_DIR) JAR_DIR?=$(JAR_DIR) LIB_DIR=$(LIB_DIR)
+#	make -C $(DEPS_DIR) JAR_DIR?=$(JAR_DIR) LIB_DIR=$(LIB_DIR)
+	make -C $(IMAGE_READER_DIR) JAR_DIR?=$(JAR_DIR) LIB_DIR=$(LIB_DIR)
+	make -C $(CUSTOM_PROCESSING_DIR) JAR_DIR?=$(JAR_DIR) LIB_DIR=$(LIB_DIR)
