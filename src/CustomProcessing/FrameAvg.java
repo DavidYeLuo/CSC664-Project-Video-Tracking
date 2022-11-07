@@ -36,7 +36,7 @@ public class FrameAvg
             frame.copyTo(firstFrame);
             firstFrame.convertTo(firstFrame, CvType.CV_16U);
             sumFrames = Mat.zeros(frame.rows(), frame.cols(), CvType.CV_16U);
-            average   = new Mat(frame.rows(), frame.cols(), CvType.CV_8U);
+            average   = new Mat(frame.rows(), frame.cols(), CvType.CV_16U);
             lastFrame = new Mat(frame.rows(), frame.cols(), CvType.CV_16U);
         }
         frame.copyTo(lastFrame);
