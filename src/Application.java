@@ -20,6 +20,39 @@ public class Application
     public static final String MEDIA_PATH = "../media/";
     public static final String OUTPUT_FILES = "../output/";
     public static final String DEBUG_PATH = "../output/DebugFiles/";
+    public static void ImageSplitAndMerge(int numOfSections, Mat sourceFrame) {
+        List<Mat> sections = new ArrayList<>();
+
+        int rowBlock = sourceFrame.rows() / numOfSections;
+        int colBlock = sourceFrame.cols() / numOfSections;
+
+        for(int col = 0; col < numOfSections; col++) {
+            for (int sect = 0; sect < numOfSections; sect++) {
+                sections.add(sourceFrame.submat(rowBlock*(sect), rowBlock*(1+sect), colBlock*(col), colBlock*(1+col)));
+
+                // Image processing
+                int index = sect + numOfSections * col;
+                Imgproc.cvtColor(sections.get(index), sections.get(index), Imgproc.COLOR_BGR2GRAY);
+                Imgproc.threshold(sections.get(index), sections.get(index), 0, 255, Imgproc.THRESH_OTSU);
+            }
+        }
+
+        ArrayList<Mat> mats = new ArrayList<>();
+        for(int index = 0; index < numOfSections; index++) {
+            mats.add(new Mat());
+        }
+
+        // Row merge
+        int temp2 = 0;
+        for (int temp = 0; temp < numOfSections * numOfSections; temp += numOfSections) {
+            Core.vconcat(sections.subList(temp, numOfSections + temp), mats.get(temp2));
+            temp2++;
+        }
+        // Column merge
+        Core.hconcat(mats, sourceFrame);
+    }
+
+
     public static void main(String[]args)
     {
         System.out.println("------------------------------------");
@@ -80,7 +113,8 @@ public class Application
 
         List<Mat> sections = new ArrayList<>();
 
-        // Cache
+        // Cache for drawing box around
+        // TODO: Wrap this in a class?
         Point topLeft; // Top left corner of the box
         Point bottomRight; // Bottom right corner of the box
         int rowBlock;
@@ -94,63 +128,13 @@ public class Application
             Imgproc.cvtColor(sourceFrame, grayScaleFrame,Imgproc.COLOR_BGR2GRAY);
             Core.normalize(grayScaleFrame, grayScaleFrame, 0, 255, Core.NORM_MINMAX);
 
-            /**
-             * TODO: Need to convert image splitting, processing, and merging into a method
-             */
-
-            /**
-             * We will apply the otsu algorithm on each segment here and apply otsu algorithm here.
-             */
-            rowBlock = sourceFrame.rows() / numOfSections;
-            colBlock = sourceFrame.cols() / numOfSections;
-            grayScaleFrame.copyTo(binaryFrame);
-            for(int col = 0; col < 8; col++)
-            {
-                for (int sect = 0; sect < numOfSections; sect++) {
-                    // For some reason the original image is overriden after image process
-                    sections.add(binaryFrame.submat(rowBlock*(0+sect), rowBlock*(1+sect), colBlock*(0+col), colBlock*(1+col)));
-
-                    int index= sect + numOfSections * col;
-//                        System.out.println(index);
-                    Imgproc.threshold(sections.get(index), sections.get(index), 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY_INV);
-                }
-
-            }
-
-
-            ArrayList<Mat> mats = new ArrayList<>();
-            for(int index = 0; index < 8; index++)
-            {
-                mats.add(new Mat());
-            }
-
-            int temp2 = 0;
-            for (int temp = 0; temp < 64; temp += 8) {
-                Core.vconcat(sections.subList(0 + temp, 8 + temp), mats.get(temp2));
-                temp2++;
-            }
-            Core.hconcat(mats, binaryFrame); // This merges images vertically
-//            sourceFrame.copyTo(outputFrame); // Darker color
             grayScaleFrame.copyTo(outputFrame);
             Imgproc.cvtColor(outputFrame, outputFrame,Imgproc.COLOR_GRAY2BGR);
+            ImageSplitAndMerge(15, sourceFrame);
 
+            sourceFrame.copyTo(grayScaleFrame);
 
-            // Cool but not sure if we need to use edge detection
-//            Imgproc.Sobel(grayScaleFrame, edgeX, CvType.CV_64F, 1, 0, 3, 1, 0, Core.BORDER_DEFAULT );
-//            Imgproc.Sobel(grayScaleFrame, edgeY, CvType.CV_64F, 0, 1, 3, 1, 0, Core.BORDER_DEFAULT );
-//            Core.convertScaleAbs(edgeX, edgeX);
-//            Core.convertScaleAbs(edgeY, edgeY);
-//            Core.addWeighted(edgeX, 0.5, edgeY, 0.5, 0, edgeFrame);
-//            Imgproc.threshold(edgeFrame, edgeFrame, 0, 255, Imgproc.THRESH_OTSU);
-//            Core.bitwise_not(edgeFrame,edgeFrame);
-//
-//            Core.bitwise_or(edgeFrame,grayScaleFrame, grayScaleFrame);
-
-            // Reduce noise but there will be more missed zebrafish
-//            Imgproc.erode(grayScaleFrame,grayScaleFrame, kernel);
-//            Imgproc.dilate(grayScaleFrame,grayScaleFrame, kernel);
-//            Imgproc.threshold(grayScaleFrame, binaryFrame, 0, 255, Imgproc.THRESH_OTSU + Imgproc.THRESH_BINARY_INV);
-
+            Imgproc.threshold(grayScaleFrame, binaryFrame, 0, 255, Imgproc.THRESH_OTSU);
 //            Imgproc.adaptiveThreshold(grayScaleFrame, binaryFrame, 255,
 //                                      Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY_INV,
 //                                      7, 8);
