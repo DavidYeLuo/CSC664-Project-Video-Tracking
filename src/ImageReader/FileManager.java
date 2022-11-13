@@ -1,7 +1,5 @@
 package ImageReader;
 
-import org.opencv.core.Mat;
-
 public abstract class FileManager
 {
     protected String readPath;
@@ -11,7 +9,8 @@ public abstract class FileManager
      * @param readTo Saves image to this param
      * @return true when succeeded and false when failed
      */
-    public abstract boolean read(Mat readTo);
-    public abstract void write(Mat source);
-    public abstract void release();
+    // TODO: Uncomment these after we have decided to implement these
+//    public abstract boolean read(Mat readTo);
+//    public abstract void write(Mat source);
+//    public abstract void release();
 }

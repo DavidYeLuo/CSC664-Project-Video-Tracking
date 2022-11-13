@@ -1,12 +1,10 @@
 CLASS = FrameAvg.class
 DEPS = .
-#DEPS_DIR = ./temp
 
-#all: dep $(CLASS)
 all: $(CLASS)
 
 %.class: %.java
-	javac -cp $(DEPS):$(JAR_DIR) $<
+	javac -cp $(DEPS) $<
 
 clean:
 	rm *.class

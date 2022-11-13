@@ -1,8 +1,5 @@
 package ImageReader;
-import org.opencv.core.Mat;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
-import ImageReader.temp.A;
+
 public class ImageManager extends FileManager
 {
     public ImageManager(String readPath, String savePath)
@@ -10,19 +7,21 @@ public class ImageManager extends FileManager
         this.readPath = readPath;
         this.savePath = savePath;
     }
-    @Override
-    public boolean read(Mat readTo)
-    {
-        (Imgcodecs.imread(readPath)).copyTo(readTo);
-        return true; // TODO: find a better way to return the result of imread
-    }
+//    @Override
+//    public boolean read(Mat readTo)
+//    {
+//        // TODO: Find what param to use
+//        System.out.println("TODO: Fix read function in ImageManager");
+//        return true;
+//    }
 
-    @Override
-    public void write(Mat source)
-    {
-        Imgcodecs.imwrite(savePath, source);
-    }
+//    @Override
+//    public void write(Mat source)
+//    {
+//        // TODO: Find what param to use
+//        System.out.println("TODO: Fix write function in ImageManager");
+//    }
 
-    @Override
-    public void release() {}
+//    @Override
+//    public void release() {}
 }
