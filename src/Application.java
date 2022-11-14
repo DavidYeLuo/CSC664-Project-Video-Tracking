@@ -76,8 +76,8 @@ public class Application
         int fourcc = VideoWriter.fourcc('a', 'v', 'c', '1');
         int numOfFrames = 100; // Number of frames to process
         // Object Tracking Settings
-        int maxAvgFrames = 3; // Used to filter background
-        int numOfSections = 8; // arbitrary number for now
+        int maxAvgFrames = 2; // Used to filter background. NOTE: Shouldn't exceed 250
+        int numOfSections = 2; // arbitrary number for now
         int radius = 1; // Box/circle around the tracking object
         Scalar color = new Scalar(203,192, 255); // hot pink
         // Sweet spot sobelMaxVal = 1, distMinVal = 1
@@ -146,7 +146,7 @@ public class Application
             grayScaleFrame.copyTo(outputFrame);
             Imgproc.cvtColor(outputFrame, outputFrame,Imgproc.COLOR_GRAY2BGR);
 
-//            Imgproc.threshold(differenceFrame, binaryFrame, 10, 255, Imgproc.THRESH_BINARY);
+           // Imgproc.threshold(differenceFrame, binaryFrame, 90, 255, Imgproc.THRESH_BINARY);
             Imgproc.threshold(differenceFrame, binaryFrame, 0, 255, Imgproc.THRESH_OTSU);
 
             regionProcessing.addFrame(binaryFrame);
