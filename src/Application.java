@@ -9,6 +9,10 @@ public class Application
     public static final String OUTPUT_FILES = "../output/";
     public static final String DEBUG_PATH = "../output/DebugFiles/";
 
+    // Video Information
+    public static final int FRAME_WIDTH = 1180;
+    public static final int FRAME_HEIGHT = 796;
+
     public static void main(String[]args)
     {
         System.out.println("------------------------------------");
@@ -24,7 +28,7 @@ public class Application
         // Settings for image/video
         String fileName = "0001.mp4";
 //        int fourcc = VideoWriter.fourcc('a', 'v', 'c', '1'); // Four cc initialization
-        int numOfFrames = 300; // Number of frames to process
+        int numOfFrames = 1; // Number of frames to process
         // Object Tracking Settings
         int maxAvgFrames = 10; // Used to filter background
         int numOfSections = 8; // arbitrary number for now
@@ -46,7 +50,7 @@ public class Application
         }
         else
         {
-//            fileManager = new VideoManager(imgPath, outImgPath, fourcc);
+            fileManager = new VideoManager(imgPath, outImgPath);
         }
         FrameAvg frameAvg = new FrameAvg(maxAvgFrames);
 
@@ -67,6 +71,7 @@ public class Application
         for(int i = 0; i < numOfFrames; i++)
         {
             // TODO: Read Frame
+            fileManager.read();
 
             // TODO: Img process
             // TODO: Grayscale
@@ -99,6 +104,7 @@ public class Application
             //     and distanceTFrame at (row,col) > distMinVal
 
             // TODO: Write/Display Image
+            fileManager.write();
         }
         // TODO: Clean up
         if(!DEBUG_MODE)
