@@ -1,4 +1,4 @@
-CLASS = FrameAvg.class
+CLASS = FrameAvg.class RegionProcessing.class
 DEPS = .
 #DEPS_DIR = ./temp
 

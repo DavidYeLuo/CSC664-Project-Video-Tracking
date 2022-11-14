@@ -1,4 +1,5 @@
 import CustomProcessing.FrameAvg;
+import CustomProcessing.RegionProcessing;
 import ImageReader.FileManager;
 import ImageReader.ImageManager;
 import ImageReader.VideoManager;
@@ -14,6 +15,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Application
@@ -72,9 +74,9 @@ public class Application
         // Settings for image/video
         String fileName = "0001.mp4";
         int fourcc = VideoWriter.fourcc('a', 'v', 'c', '1');
-        int numOfFrames = 300; // Number of frames to process
+        int numOfFrames = 100; // Number of frames to process
         // Object Tracking Settings
-        int maxAvgFrames = 10; // Used to filter background
+        int maxAvgFrames = 3; // Used to filter background
         int numOfSections = 8; // arbitrary number for now
         int radius = 1; // Box/circle around the tracking object
         Scalar color = new Scalar(203,192, 255); // hot pink
@@ -118,6 +120,10 @@ public class Application
 
         List<Mat> sections = new ArrayList<>();
 
+        RegionProcessing regionProcessing = new RegionProcessing();
+        Mat regionFrame = new Mat();
+        HashMap<Integer, Integer> regionUsage = new HashMap<>(); // TODO: Fix
+
         // Cache for drawing box around
         // TODO: Wrap this in a class?
         Point topLeft; // Top left corner of the box
@@ -143,6 +149,9 @@ public class Application
 //            Imgproc.threshold(differenceFrame, binaryFrame, 10, 255, Imgproc.THRESH_BINARY);
             Imgproc.threshold(differenceFrame, binaryFrame, 0, 255, Imgproc.THRESH_OTSU);
 
+            regionProcessing.addFrame(binaryFrame);
+            regionFrame = regionProcessing.getImageRegion();
+
             Imgproc.distanceTransform(binaryFrame, distanceTFrame, Imgproc.DIST_L1, 5);
 
 //            Core.normalize(distanceTFrame, distanceTFrame, 0, 255, Core.NORM_MINMAX);
@@ -158,6 +167,9 @@ public class Application
             Core.convertScaleAbs(sobelY, sobelY);
 //            Core.addWeighted(sobelX, 0.5, sobelY, 0.5, 0, finalSobel);
             Core.bitwise_or(sobelX, sobelY, finalSobel);
+
+            regionUsage = new HashMap<>(); // TODO: Fix
+            regionUsage.put(0, 1); // TODO: Fix
             for(int row = 0; row < finalSobel.rows(); row++)
             {
                 for(int col = 0; col < finalSobel.cols(); col++)
@@ -166,6 +178,9 @@ public class Application
                     // and distanceTFrame at (row,col) > distMinVal
                     if(distanceTFrame.get(row, col)[0] < distMinVal) continue; // Closer to 0 means likely a background
                     if(finalSobel.get(row,col)[0] > sobelMaxVal) continue; // 0 Is the peak
+                    if(regionUsage.get(regionFrame.get(row,col)[0]) != null) continue; // TODO: Fix
+                    regionUsage.put((int) regionFrame.get(row,col)[0], 1); // TODO: Fix
+
                     topLeft = new Point(col-radius, row-radius);
                     bottomRight = new Point(col+radius, row+radius);
                     Imgproc.rectangle(outputFrame, topLeft, bottomRight, color);
@@ -188,6 +203,7 @@ public class Application
             Imgcodecs.imwrite(DEBUG_PATH + "average.jpg", averageFrame);
             Imgcodecs.imwrite(DEBUG_PATH + "difference.jpg", differenceFrame);
 //                        Imgcodecs.imwrite(OUTPUT_FILES + "edge.jpg", edgeFrame);
+            Imgcodecs.imwrite(DEBUG_PATH + "region.jpg", regionFrame);
         }
         if(DEBUG_PRINT_IMAGE)
         {
@@ -200,6 +216,7 @@ public class Application
             createTextImageFile("result.txt", outputFrame);
             createTextImageFile("average.txt", averageFrame);
             createTextImageFile("difference.txt", differenceFrame);
+            createTextImageFile("region.txt", regionFrame);
         }
     }
     private static void createTextImageFile(String fileName, Mat img)
